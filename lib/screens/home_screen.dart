@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:image_picker/image_picker.dart';
 
 import '../models/document_file.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int activeStageIndex = 0; // 0=upload,1=ocr,2=validate
   Map<String, dynamic>? verdict;
   String? errorMessage;
+  String requestShortId = "";
   final picker = ImagePicker();
 
   final List<Map<String, dynamic>> docTypes = [
@@ -70,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       activeStageIndex = 0;
       verdict = null;
       errorMessage = null;
+      requestShortId = "";
     });
   }
 
@@ -84,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final uploadRes = await ApiService.uploadDocuments(selectedFiles);
       if (uploadRes["success"] != true) throw Exception(uploadRes["message"]);
       final int requestId = uploadRes["verificationId"];
+      requestShortId = uploadRes["requestId"] ?? "";
 
       setState(() {
         stage = AppStage.ocr;
@@ -482,6 +486,50 @@ class _HomeScreenState extends State<HomeScreen> {
       key: const ValueKey("result"),
       padding: const EdgeInsets.all(20),
       children: [
+        if (requestShortId.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: InkWell(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: requestShortId));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Request ID copied: $requestShortId"),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.tag, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      requestShortId,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.copy, size: 12, color: AppColors.primary),
+                  ],
+                ),
+              ),
+            ),
+          ),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(

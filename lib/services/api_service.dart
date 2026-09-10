@@ -6,7 +6,7 @@ import '../models/document_file.dart';
 
 class ApiService {
   // Replace with your PC's LAN IP (not localhost) while testing on a phone/emulator.
-  static const String baseUrl = "https://192.168.0.104:9001/User/Documents";
+  static const String baseUrl = "https://10.49.27.189:9001/User/Documents";
 
   static Future<Map<String, dynamic>> uploadDocuments(
     List<DocumentFile> docs,
